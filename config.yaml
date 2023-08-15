@@ -1,0 +1,17 @@
+gin:
+  mode: release
+  enable_decoder_use_number: false
+  enable_decoder_disallow_unknown_fields: false
+  redirect_trailing_slash: true
+  redirect_fixed_path: false
+  handle_method_not_allowed: false
+  forwarded_by_client_ip: true
+  use_raw_path: false
+  unescape_path_values: true
+  remove_extra_slash: false
+  remote_ip_headers:
+    - X-Forwarded-For
+    - X-Real-IP
+  trusted_platform:
+  max_multipart_memory: 33554432 # 32MB
+  context_with_fallback: false
