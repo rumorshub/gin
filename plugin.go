@@ -20,6 +20,7 @@ type Plugin struct {
 	cfg *Config
 
 	mdwr    map[string]Middleware
+	statics []Static
 	routers []router
 	groups  []group
 	engine  *Engine
@@ -84,6 +85,22 @@ func (p *Plugin) Collects() []*dep.In {
 				p.addRouterGroup(g.(RouterGroup))
 			}
 		}, (*RouterGroups)(nil)),
+		dep.Fits(func(pp interface{}) {
+			s := pp.(Static)
+
+			p.mu.Lock()
+			p.statics = append(p.statics, s)
+			p.mu.Unlock()
+		}, (*RouterGroup)(nil)),
+		dep.Fits(func(pp interface{}) {
+			ss := pp.(Statics)
+
+			p.mu.Lock()
+			for _, s := range ss.StaticsFS() {
+				p.statics = append(p.statics, s.(Static))
+			}
+			p.mu.Unlock()
+		}, (*RouterGroup)(nil)),
 	}
 }
 
@@ -100,6 +117,10 @@ func (p *Plugin) Handler() http.Handler {
 	p.once.Do(func() {
 		for relativePath, root := range p.cfg.Static {
 			p.engine.Static(relativePath, root)
+		}
+
+		for _, s := range p.statics {
+			p.engine.StaticFS(s.RelativePath(), &onlyFilesFS{s.FileSystem()})
 		}
 
 		p.engine.Use(func(c *gin.Context) {
