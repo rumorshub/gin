@@ -22,13 +22,16 @@ func NewEngine(cfg Config, theme Theme) *Engine {
 
 	binding.EnableDecoderUseNumber = cfg.EnableDecoderUseNumber
 	binding.EnableDecoderDisallowUnknownFields = cfg.EnableDecoderDisallowUnknownFields
-	binding.Validator.Engine().(*validator.Validate).RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		if name == "-" || name == "" {
-			return ""
-		}
-		return name
-	})
+
+	if binding.Validator != nil {
+		binding.Validator.Engine().(*validator.Validate).RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" || name == "" {
+				return ""
+			}
+			return name
+		})
+	}
 
 	g := gin.New()
 	g.RedirectTrailingSlash = *cfg.RedirectTrailingSlash
